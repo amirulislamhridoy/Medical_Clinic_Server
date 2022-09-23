@@ -14,8 +14,9 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     const departmentCollection = client.db("medical-clinick").collection("department");
     try {
-        app.get('/department ', async (req, res) => {
-            const cursor = departmentCollection.find({})
+          app.get('/department', async (req, res) => {
+            const query = {}
+            const cursor = departmentCollection.find(query)
             const result = await cursor.toArray()
             res.send(result)
           })
@@ -27,6 +28,7 @@ async function run() {
   run().catch(console.dir);
 
 app.get('/', (req, res) => {
+  console.log('ok')
   res.send('Hello World!')
 })
 

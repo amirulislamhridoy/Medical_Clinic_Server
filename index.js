@@ -10,7 +10,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 //   // perform actions on the collection object
 //   client.close();
 // });
-// a
+
 async function run() {
     const departmentCollection = client.db("medical-clinick").collection("department");
     try {

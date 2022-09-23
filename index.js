@@ -17,7 +17,7 @@ async function run() {
         app.get('/department ', async (req, res) => {
             const cursor = departmentCollection.find({})
             const result = await cursor.toArray()
-            console.log(result)
+            res.send(result)
           })
 
     } finally {

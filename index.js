@@ -5,6 +5,8 @@ var cors = require('cors')
 var bodyParser = require('body-parser')
 const { MongoClient, ServerApiVersion } = require('mongodb');
 var {ObjectId} = require('mongodb'); 
+var jwt = require('jsonwebtoken');
+require('dotenv').config()
 
 app.use(cors())
 // app.use(bodyParser.json())
@@ -22,6 +24,7 @@ async function run() {
   try {
     const departmentCollection = client.db("medical-clinick").collection("department");
     const bookCollection = client.db("medical-clinick").collection("book");
+    const userCollection = client.db("medical-clinick").collection("user");
     app.get('/department', async (req, res) => {
       const query = {}
       const cursor = departmentCollection.find(query)
@@ -35,6 +38,18 @@ async function run() {
       const todayAllResult = await bookCollection.find(query).toArray()
       res.send({allResult, todayAllResult})
     })
+    app.get('/user/:email', async (req, res) => {
+      const email = req.params.email
+      const query = {email}
+      const result = await userCollection.findOne(query)
+      const isAdmin = result?.role === 'admin'
+      res.send(isAdmin)
+    })
+    app.get('/user', async (req, res) => {
+      const query = {}
+      const result = await userCollection.find(query).toArray()
+      res.send(result)
+    })
 
     // post 
     app.post('/book', async (req, res) => {
@@ -42,7 +57,32 @@ async function run() {
       const result = await bookCollection.insertOne(data)
       res.send(result)
     })
-    // s
+
+    // patch
+    app.patch('/login/:email',async (req, res) => {
+      const email = req.params.email
+      const filter = {email}
+      const options = {upsert: true}
+      const updateDoc = {
+        $set: {email}
+      }
+      const result = await userCollection.updateOne(filter, updateDoc, options)
+
+      const token = jwt.sign({email}, process.env.SYCRECT_CODE, {expiresIn: '1h'})
+      res.json(token)
+    })
+
+    // put
+    app.put('/makeAdmin', async (req, res) => {
+      const id = req.query.id
+      console.log(id)
+      const filter = {_id: ObjectId(id)}
+      const updateDoc = {
+        $set: {role: 'admin'}
+      }
+      const result = await userCollection.updateOne(filter, updateDoc)
+      res.send(result)
+    })
 
     // delete
     app.delete('/appointment/:id', async (req, res) => {
@@ -59,7 +99,6 @@ async function run() {
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
-  console.log('ok')
   res.send('Hello World!')
 })
 
